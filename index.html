@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>CezApp</title>
+    
+    <link rel="icon" type="image/png" href="images/favicons.png">
+    <link rel="apple-touch-icon" href="images/favicons.png">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<div id="app" v-cloak>
+    <div class="top-bar">
+        <button class="icon-btn" @click="toggleTheme">
+            <i class="fas" :class="theme === 'dark' ? 'fa-sun' : 'fa-moon'"></i>
+        </button>
+        <button class="icon-btn" @click="showSettings = true">
+            <i class="fas fa-cog"></i>
+        </button>
+    </div>
+
+    <header class="app-header">
+        <h1>HAKETTİM<span class="highlight"> AŞKIM</span></h1>
+    </header>
+
+    <transition name="fade" mode="out-in">
+        <div v-if="!currentUser" class="screen-container center-content" key="login">
+            <h2>Kimsin?</h2>
+            <div class="profile-select">
+                <button @click="login('user1')" class="profile-btn">
+                    <img src="images/kay.png" alt="Kayra" class="profile-img">
+                    <span>Kayra</span>
+                </button>
+                <button @click="login('user2')" class="profile-btn">
+                    <img src="images/aley.png" alt="Aleyna" class="profile-img">
+                    <span>Aleyna</span>
+                </button>
+            </div>
+        </div>
+
+        <div v-else class="screen-container" key="game">
+            
+            <div v-if="gameState.status === 'IDLE'">
+                <div v-if="!selectedCategory">
+                    <h3 class="section-title">Kategori Seç</h3>
+                    <div class="category-grid">
+                        <div v-for="(cat, index) in categories" :key="index" 
+                             @click="selectedCategory = cat" 
+                             class="category-card"
+                             :style="{ '--delay': index * 0.05 + 's' }">
+                            <i :class="cat.icon || 'fas fa-star'"></i>
+                            <span>{{ cat.name }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else>
+                    <button @click="selectedCategory = null" class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Geri Dön
+                    </button>
+                    <h3 class="section-title">{{ selectedCategory.name }}</h3>
+                    <div class="punishment-list">
+                        <div v-for="(item, index) in selectedCategory.items" :key="index" 
+                             @click="givePunishment(item)" 
+                             class="punishment-item">
+                            {{ item }}
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="gameState.status === 'PENDING'" class="status-screen">
+                <div v-if="gameState.target === currentUser" class="modal-card pop-in">
+                    <div class="icon-circle alert"><i class="fas fa-gavel"></i></div>
+                    <h3>Ceza Geldi!</h3>
+                    <p class="punishment-text">"{{ gameState.punishment }}"</p>
+                    <div class="action-buttons">
+                        <button @click="acceptPunishment" class="btn btn-primary">Kabul Et</button>
+                        <button @click="rejectPunishment" class="btn btn-secondary">Reddet</button>
+                    </div>
+                </div>
+                <div v-else class="modal-card">
+                    <div class="loader"></div>
+                    <h3>Onay Bekleniyor</h3>
+                    <p>Karşı taraf inceliyor...</p>
+                    <button @click="resetGame" class="btn-text">Vazgeç</button>
+                </div>
+            </div>
+
+            <div v-if="gameState.status === 'ACTIVE'" class="status-screen">
+                <div class="active-card pulse-border">
+                    <span class="badge">GÖREV</span>
+                    <h2 class="big-text">{{ gameState.punishment }}</h2>
+                </div>
+                <div class="progress-area">
+                    <div class="user-status" :class="{ done: gameState.user1Done }">
+                        <img src="images/kay.png" class="mini-avatar"> Kayra
+                    </div>
+                    <div class="user-status" :class="{ done: gameState.user2Done }">
+                        <img src="images/aley.png" class="mini-avatar"> Aleyna
+                    </div>
+                </div>
+                <button v-if="!amIDone" @click="markDone" class="btn btn-large btn-success">YAPTIM! ✅</button>
+                <div v-else class="waiting-text">Diğer taraf bekleniyor...</div>
+            </div>
+        </div>
+    </transition>
+
+    <div v-if="showSettings" class="modal-overlay">
+        <div class="modal-content settings-modal">
+            <div class="modal-header">
+                <h3>Ayarlar</h3>
+                <button @click="showSettings = false" class="close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="tabs">
+                <button :class="{ active: settingsTab === 'category' }" @click="settingsTab = 'category'">Kategori Ekle</button>
+                <button :class="{ active: settingsTab === 'punishment' }" @click="settingsTab = 'punishment'">Ceza Ekle</button>
+            </div>
+            
+            <div v-if="settingsTab === 'category'" class="tab-content">
+                <input v-model="newCategoryName" type="text" placeholder="Örn: 6. Kategori" class="input-field">
+                <button @click="addNewCategory" class="btn btn-primary">Kategoriyi Oluştur</button>
+
+                <div class="list-container">
+                    <h4 class="list-title">Mevcut Kategoriler (Silmek için tıkla)</h4>
+                    <div v-for="(cat, index) in categories" :key="index" class="list-item">
+                        <span>{{ cat.name }}</span>
+                        <button @click="deleteCategory(index)" class="btn-delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="settingsTab === 'punishment'" class="tab-content">
+                <select v-model="selectedCatForAdd" class="input-field">
+                    <option :value="null" disabled>Kategori Seçin</option>
+                    <option v-for="(cat, index) in categories" :value="index">{{ cat.name }}</option>
+                </select>
+                
+                <input v-model="newPunishmentName" type="text" placeholder="Örn: 100 Şınav Çek" class="input-field">
+                <button @click="addNewPunishment" class="btn btn-primary">Listeye Ekle</button>
+
+                <div v-if="selectedCatForAdd !== null && categories[selectedCatForAdd]" class="list-container">
+                    <h4 class="list-title">"{{ categories[selectedCatForAdd].name }}" içindeki cezalar:</h4>
+                    <div v-for="(item, pIndex) in categories[selectedCatForAdd].items" :key="pIndex" class="list-item">
+                        <span class="truncate-text">{{ item }}</span>
+                        <button @click="deletePunishment(selectedCatForAdd, pIndex)" class="btn-delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div v-if="notification.show" class="ios-modal-overlay">
+        <div class="ios-modal">
+            <div class="ios-modal-content">
+                {{ notification.message }}
+            </div>
+            <div class="ios-modal-actions">
+                <button v-if="notification.type === 'confirm'" @click="closeNotification(false)" class="ios-btn">
+                    Vazgeç
+                </button>
+                <button @click="closeNotification(true)" class="ios-btn" :class="{ 'danger': notification.type === 'confirm', 'bold': notification.type === 'alert' }">
+                    {{ notification.confirmText || 'Tamam' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
