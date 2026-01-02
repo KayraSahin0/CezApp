@@ -22,7 +22,10 @@
 
 <div id="app" v-cloak>
     <div class="top-bar">
-        <button class="icon-btn" @click="toggleTheme">
+        <button v-if="currentUser" class="icon-btn" @click="logout" style="margin-right: auto;">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+        <button class="icon-btn" @click="toggleTheme" style="margin-right: 10px;">
             <i class="fas" :class="theme === 'dark' ? 'fa-sun' : 'fa-moon'"></i>
         </button>
         <button class="icon-btn" @click="showSettings = true">
@@ -129,7 +132,7 @@
                 <button :class="{ active: settingsTab === 'category' }" @click="settingsTab = 'category'">Kategori Ekle</button>
                 <button :class="{ active: settingsTab === 'punishment' }" @click="settingsTab = 'punishment'">Ceza Ekle</button>
             </div>
-            
+
             <div v-if="settingsTab === 'category'" class="tab-content">
                 <input v-model="newCategoryName" type="text" placeholder="Örn: 6. Kategori" class="input-field">
                 <button @click="addNewCategory" class="btn btn-primary">Kategoriyi Oluştur</button>

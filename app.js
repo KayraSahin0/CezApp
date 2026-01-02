@@ -182,6 +182,15 @@ const app = Vue.createApp({
             }
             this.notification.show = false;
         },
+
+        logout() {
+            // Yanlışlıkla basmaya karşı onay soruyoruz
+            this.showConfirm("Başlangıç ekranına (Profil Seçimi) dönmek istiyor musun?", "Evet, Dön", () => {
+                this.currentUser = null;
+                localStorage.removeItem('userRole'); // Beni hatırla özelliğini siler
+                // İstersen oyunu sıfırlama, sadece kullanıcıyı at
+            });
+        },
     }
 });
 

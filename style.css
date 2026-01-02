@@ -228,5 +228,25 @@ body {
 .ios-btn.danger { color: var(--danger); font-weight: 600; }
 .ios-btn.bold { font-weight: 600; }
 
+/* --- GÜNEŞ İKONU ÖZELLEŞTİRMESİ --- */
+.fa-sun {
+    color: #FFD700 !important; /* Altın Sarısı */
+    /* Güneşin etrafına hafif bir parlama (Glow) efekti ekler */
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.7)); 
+    transition: transform 0.5s ease, color 0.3s;
+}
+
+/* Güneşe basınca (hover veya aktifken) biraz dönsün */
+.icon-btn:hover .fa-sun {
+    transform: rotate(45deg) scale(1.1);
+}
+
+/* İstersen Ay ikonunu da (Açık moddayken görünen) mavi/gri yapabilirsin */
+.fa-moon {
+    color: #9090e6 !important; 
+    filter: drop-shadow(0 0 5px rgba(105, 105, 184, .8)); 
+    transition: transform 0.5s ease, color 0.3s;
+}
+
 @keyframes popScale { from { transform: scale(1.1); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
