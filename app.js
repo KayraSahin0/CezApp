@@ -42,7 +42,12 @@ const app = Vue.createApp({
                 { name: '3. Kategori', items: ['Şarkı söyle', 'Dans et'] },
                 { name: '4. Kategori', items: ['Telefonu bırak', 'Kumanda teslim'] },
                 { name: '5. Kategori', items: ['Sinema bileti', 'Sürpriz yap'] }
-            ]
+            ],
+
+            // Sebep Modalı için Geçici Değişkenler
+            showReasonModal: false,
+            tempPunishment: '', // Seçilen cezayı burada tutacağız
+            punishmentReason: '', // Yazılan sebebi burada tutacağız
         }
     },
     computed: {
@@ -83,16 +88,42 @@ const app = Vue.createApp({
             this.currentUser = role;
             localStorage.setItem('userRole', role);
         },
+        // 1. ADIM: Cezayı seçince Modalı Aç
         givePunishment(punishmentName) {
+            this.tempPunishment = punishmentName; // Cezayı hafızaya al
+            this.punishmentReason = ''; // Eski yazıyı temizle
+            this.showReasonModal = true; // Pencereyi aç
+        },
+
+        // 2. ADIM: Sebebi Yazıp Onaylayınca Gönder
+        confirmPunishment() {
+            if (!this.punishmentReason.trim()) {
+                // Eğer sebep boşsa uyarı ver (bizim yeni iOS uyarısı)
+                return this.showAlert("Lütfen bir sebep yaz! Neden ceza veriyorsun?");
+            }
+
+            // Firebase'e kaydet (Artık 'reason' alanı da var)
             db.ref('game').set({
                 status: 'PENDING',
-                punishment: punishmentName,
+                punishment: this.tempPunishment,
+                reason: this.punishmentReason, // <--- YENİ EKLENEN KISIM
                 sender: this.currentUser,
                 target: this.currentUser === 'user1' ? 'user2' : 'user1',
                 user1Done: false,
                 user2Done: false
             });
+
+            // Temizlik
+            this.showReasonModal = false;
             this.selectedCategory = null;
+            this.showAlert("Ceza ve sebebi başarıyla gönderildi! 😈");
+        },
+
+        // VAZGEÇME
+        cancelPunishment() {
+            this.showReasonModal = false;
+            this.tempPunishment = '';
+            this.punishmentReason = '';
         },
         acceptPunishment() { db.ref('game/status').set('ACTIVE'); },
         rejectPunishment() { alert("Reddedildi!"); this.resetGame(); },
@@ -192,6 +223,8 @@ const app = Vue.createApp({
             });
         },
     }
+
+
 });
 
 app.mount('#app');

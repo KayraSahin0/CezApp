@@ -1,7 +1,0 @@
-apiKey: "AIzaSyBZuPRkWaAyaKsRjLw8kTZpSduUlVSBqvQ",
-    authDomain: "cezaapp.firebaseapp.com",
-    databaseURL: "https://cezaapp-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "cezaapp",
-    storageBucket: "cezaapp.firebasestorage.app",
-    messagingSenderId: "786477452236",
-    appId: "1:786477452236:web:b0a2ce9fb336b61ecb2b69"

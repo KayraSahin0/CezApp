@@ -93,6 +93,10 @@
                         <button @click="acceptPunishment" class="btn btn-primary">Kabul Et</button>
                         <button @click="rejectPunishment" class="btn btn-secondary">Reddet</button>
                     </div>
+                    <div class="reason-box">
+                        <span style="opacity: 0.6; font-size: 0.8rem;">Sebep:</span><br>
+                        "{{ gameState.reason }}"
+                    </div>
                 </div>
                 <div v-else class="modal-card">
                     <div class="loader"></div>
@@ -184,8 +188,25 @@
             </div>
         </div>
     </div>
-</div>
 
+    <div v-if="showReasonModal" class="ios-modal-overlay">
+        <div class="ios-modal" style="width: 300px;"> <div class="ios-modal-content">
+                <h4 style="margin: 0 0 10px 0;">Neden Ceza Veriyorsun?</h4>
+                <p style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 10px;">Geçerli bir sebep yazmalısın.</p>
+                
+                <textarea 
+                    v-model="punishmentReason" 
+                    class="input-field" 
+                    placeholder="Örn: Fındıksın..." 
+                    style="height: 80px; resize: none;"></textarea>
+            </div>
+            <div class="ios-modal-actions">
+                <button @click="cancelPunishment" class="ios-btn">Vazgeç</button>
+                <button @click="confirmPunishment" class="ios-btn bold" style="color: var(--primary);">Gönder 🚀</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="app.js"></script>
 </body>
 </html>
